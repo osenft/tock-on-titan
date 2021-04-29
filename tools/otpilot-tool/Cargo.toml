@@ -1,4 +1,4 @@
-# Copyright 2019 Google LLC
+# Copyright 2020 lowRISC contributors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,10 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# SPDX-License-Identifier: Apache-2.0
 
-[workspace]
-members = [
-    "otpilot-tool",
-    "size_diff",
-    "size_graph",
-]
+[package]
+name = "otpilot-tool"
+version = "0.1.0"
+edition = "2018"
+authors = [ "Oskar Senft <osk@google.com>" ]
+license = "Apache-2.0"
+description = """
+Tool for talking with OTPilot via SPI
+"""
+
+[dependencies]
+clap = { path = "../../third_party/clap" }
+manticore = { path = "../../third_party/manticore", default_features = false }
+spiutils = { path = "../../shared-lib/spiutils" }
