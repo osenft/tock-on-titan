@@ -251,6 +251,11 @@ pub struct Header<AddrType> {
     pub address: Option<AddrType>,
 }
 
+/// The maximum length of a Header on the wire, in bytes.
+/// Note that the actual length depends on whether the header includes an
+/// address as well as on the length of the address.
+pub const MAX_HEADER_LEN: usize = 1 + 4;
+
 impl<'a, AddrType> Header<AddrType>
 where AddrType: Address {
     /// Get the address as an Option<u32>
