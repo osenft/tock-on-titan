@@ -46,9 +46,12 @@ use libtock::result::TockError;
 use libtock::result::TockResult;
 use libtock::syscalls::raw::yieldk;
 
+use spiutils::driver::firmware::SegmentInfo;
 use spiutils::driver::spi_device::AddressConfig;
 use spiutils::driver::spi_device::HandlerMode;
+use spiutils::io::Cursor;
 use spiutils::protocol::flash::AddressMode;
+use spiutils::protocol::wire::ToWire;
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -68,6 +71,22 @@ fn run_host_helper_demo() -> TockResult<()> {
     Ok(())
 }
 
+fn store_build_info(id: &str, segment_info: SegmentInfo, mut buf: &mut[u8]) {
+    match firmware_controller::get_build_info(segment_info) {
+        Ok(build_info) => {
+            let cursor = Cursor::new(&mut buf);
+            if let Err(_) = build_info.to_wire(cursor) {
+                let mut console = Console::new();
+                let _ = writeln!(console, "Could not serialize {} build info", id);
+            }
+        },
+        Err(_) => {
+            let mut console = Console::new();
+            let _ = writeln!(console, "Could not get {} build info", id);
+        }
+    }
+}
+
 fn run() -> TockResult<()> {
     let mut console = Console::new();
 
@@ -77,26 +96,29 @@ fn run() -> TockResult<()> {
 
     //////////////////////////////////////////////////////////////////////////////
 
+    // Initialize Manticore identity data.
+
     let mut identity = manticore_support::Identity {
         version: [0; 32],
+        ro_version: [0; 32],
+        rw_version: [0; 32],
         device_id: [0; 64],
     };
 
-    {
-        let mut idx : usize = 0;
-        for val in "v1.00".as_bytes() {
-            if idx > identity.version.len() { break; }
-            identity.version[idx] = *val;
-            idx = idx + 1;
-        }
+    for (idx, val) in BANNER.as_bytes().iter().enumerate() {
+        if idx > identity.version.len() { break; }
+        identity.version[idx] = *val;
     }
 
-    {
-        let dev_id_bytes = fuse::get().get_dev_id()?.to_be_bytes();
-        for idx in 0..dev_id_bytes.len() {
-            identity.device_id[idx] = dev_id_bytes[idx];
-        }
+    store_build_info("RO", globalsec::get().get_active_ro(), &mut identity.ro_version);
+    store_build_info("RW", globalsec::get().get_active_rw(), &mut identity.rw_version);
+
+    let dev_id_bytes = fuse::get().get_dev_id()?.to_be_bytes();
+    for idx in 0..dev_id_bytes.len() {
+        identity.device_id[idx] = dev_id_bytes[idx];
     }
+
+    //////////////////////////////////////////////////////////////////////////////
 
     let mut spi_processor = SpiProcessor {
         manticore_handler: manticore_support::Handler::new(&identity),
@@ -106,7 +128,6 @@ fn run() -> TockResult<()> {
 
     let gpio_processor = GpioProcessor::new();
     let console_processor = ConsoleProcessor::new(&gpio_processor);
-
 
     //////////////////////////////////////////////////////////////////////////////
 
