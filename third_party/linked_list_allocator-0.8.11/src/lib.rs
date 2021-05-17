@@ -21,8 +21,8 @@ use core::alloc::{AllocError, Allocator};
 use core::ops::Deref;
 use core::ptr::NonNull;
 #[cfg(test)]
-use hole::Hole;
-use hole::HoleList;
+pub use hole::Hole;
+pub use hole::HoleList;
 #[cfg(feature = "use_spin")]
 use spinning_top::Spinlock;
 
@@ -32,10 +32,10 @@ mod test;
 
 /// A fixed size heap backed by a linked list of free memory blocks.
 pub struct Heap {
-    bottom: usize,
-    size: usize,
-    used: usize,
-    holes: HoleList,
+    pub bottom: usize,
+    pub size: usize,
+    pub used: usize,
+    pub holes: HoleList,
 }
 
 impl Heap {
