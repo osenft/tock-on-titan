@@ -99,7 +99,7 @@ fn run() -> TockResult<()> {
     }
 
     let mut spi_processor = SpiProcessor {
-        server: manticore_support::get_pa_rot(&identity),
+        manticore_handler: manticore_support::Handler::new(&identity),
         print_flash_headers: false,  // Enable to print incoming SPI flash headers
         firmware: firmware_controller::FirmwareController::new(),
     };
