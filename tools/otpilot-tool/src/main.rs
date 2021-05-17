@@ -76,25 +76,33 @@ impl <'a> Device<'a> {
     }
 
     pub fn device_info(&self) {
+        use manticore::mem::BumpArena;
         use manticore::protocol::device_info::*;
 
         self.send_manticore(DeviceInfoRequest {
             index: manticore::protocol::device_info::InfoIndex::UniqueChipIndex,
         });
         let buf = self.read_mailbox();
-        let resp = wire::manticore::deserialize::<DeviceInfoResponse>(&buf);
+
+        let mut scratch = [0u8; 1024];
+        let arena = BumpArena::new(&mut scratch[..]);
+        let resp = wire::manticore::deserialize::<DeviceInfoResponse>(&buf, &arena);
 
         println!("Response: {:?}", resp);
     }
 
     pub fn fw_info(&self, index: u8) {
+        use manticore::mem::BumpArena;
         use manticore::protocol::firmware_version::*;
 
         self.send_manticore(FirmwareVersionRequest {
             index,
         });
         let buf = self.read_mailbox();
-        let resp = wire::manticore::deserialize::<FirmwareVersionResponse>(&buf);
+
+        let mut scratch = [0u8; 1024];
+        let arena = BumpArena::new(&mut scratch[..]);
+        let resp = wire::manticore::deserialize::<FirmwareVersionResponse>(&buf, &arena);
 
         println!("Response: {:?}", resp);
 

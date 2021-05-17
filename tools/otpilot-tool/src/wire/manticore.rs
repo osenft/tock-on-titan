@@ -49,7 +49,7 @@ pub fn serialize<'a, 'b, M: ManticoreRequest<'a>>
 }
 
 pub fn deserialize<'a, M: ManticoreResponse<'a>>
-(mut data: &'a [u8]) -> M {
+(mut data: &[u8], arena: &'a manticore::mem::BumpArena) -> M {
     use spiutils::protocol::payload;
 
     let orig_data = data;
@@ -76,7 +76,7 @@ pub fn deserialize<'a, M: ManticoreResponse<'a>>
 
     data = &data[..spi_header.content_len as usize];
 
-    let header = manticore::protocol::Header::from_wire(&mut data)
+    let header = manticore::protocol::Header::from_wire(&mut data, arena)
         .expect("Manticore header deserialize failed");
     if header.command != M::TYPE {
         panic!("Unexpected Manticore header command: {:?}", header.command);
@@ -85,6 +85,6 @@ pub fn deserialize<'a, M: ManticoreResponse<'a>>
         panic!("Unexpected Manticore header is_request: {}", header.is_request);
     }
 
-    M::from_wire(&mut data)
+    M::from_wire(&mut data, arena)
         .expect("Manticore deserialization failed")
 }
