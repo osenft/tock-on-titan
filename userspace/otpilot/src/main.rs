@@ -255,7 +255,6 @@ fn run() -> TockResult<()> {
 
 const BANNER: &'static str = concat!(
     env!("CARGO_PKG_NAME"), ' ',
-    env!("CARGO_PKG_VERSION"), ' ',
     include_str!("../../../build/gitlongtag")
 );
 
