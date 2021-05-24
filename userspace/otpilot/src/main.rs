@@ -294,3 +294,40 @@ async fn main() -> TockResult<()> {
 
     result
 }
+
+/*
+#[panic_handler]
+unsafe fn panic_handler(panic_info: &core::panic::PanicInfo) -> ! {
+    // Signal a panic using the LowLevelDebug capsule (if available).
+    let _ = libtock::syscalls::command1_insecure(8, 1, 1);
+
+    println!("panic!");
+    if let Some(s) = panic_info.payload().downcast_ref::<&str>() {
+        println!("message: {:?}", s);
+    }
+    if let Some(location) = panic_info.location() {
+        println!("location: file '{}' at line {}",
+            location.file(),
+            location.line(),
+        );
+    }
+
+    loop {
+        yieldk();
+    }
+}
+*/
+
+#[panic_handler]
+unsafe fn panic_handler(_info: &core::panic::PanicInfo) -> ! {
+    report_panic()
+}
+
+unsafe fn report_panic() -> ! {
+    // Signal a panic using the LowLevelDebug capsule (if available).
+    let _ = libtock::syscalls::command1_insecure(8, 1, 1);
+
+    loop {
+        yieldk();
+    }
+}
